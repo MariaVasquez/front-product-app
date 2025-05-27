@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+
+:root {
+  color-scheme: light;
+  background-color: #ffffff;
+}
+
+/* Solo si no quieres usar Tailwind para botones y enlaces: */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #ffffff;
+  overflow-y: auto;
+}
