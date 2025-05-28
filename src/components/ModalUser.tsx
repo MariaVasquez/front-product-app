@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 import { UserService } from "../api/users-service";
 import type { Address, UserRequest, UserResponse } from "../models/user.model";
 import { useLocalStorage } from "../hooks/use-local-storage";
@@ -6,13 +6,11 @@ import { useLocalStorage } from "../hooks/use-local-storage";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUserChange?: () => void;
 }
 
 export const ModalUser: React.FC<ModalProps> = ({
   isOpen,
   onClose,
-  onUserChange,
 }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState("");
@@ -41,8 +39,8 @@ export const ModalUser: React.FC<ModalProps> = ({
   const [addressErrors, setAddressErrors] = useState<
     Partial<Record<keyof Address, string>>
   >({});
-  const [user, setUser] = useLocalStorage<UserResponse | null>("user", null);
-  const userService = new UserService();
+  const [, setUser] = useLocalStorage<UserResponse | null>("user", null);
+  const userService = useRef(new UserService()).current;
 
   const validateForm = (): boolean => {
     const errors: Partial<Record<keyof UserRequest, string>> = {};
@@ -79,6 +77,7 @@ export const ModalUser: React.FC<ModalProps> = ({
         const result = await userService.saveUser(userForm);
         setUser(result.data!);
         onClose();
+        window.location.reload();
       } catch (err) {
         console.error("Error al registrar usuario", err);
       }
@@ -88,6 +87,7 @@ export const ModalUser: React.FC<ModalProps> = ({
         const result = await userService.getUserByEmail(email);
         setUser(result.data!);
         onClose();
+        window.location.reload();
       } catch (err) {
         console.error("Error al buscar usuario", err);
       }
@@ -104,12 +104,6 @@ export const ModalUser: React.FC<ModalProps> = ({
       address: [{ ...prev.address[0], [field]: value }],
     }));
   };
-
-  useEffect(() => {
-    if (user?.name) {
-      onUserChange?.();
-    }
-  }, [user]);
 
   if (!isOpen) return null;
 

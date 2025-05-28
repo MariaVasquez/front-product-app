@@ -3,7 +3,7 @@ import { ProductCard } from "../components/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 
 export const Home: React.FC = () => {
-
+  
   const {
     data: products = [],
     isLoading,
@@ -35,15 +35,17 @@ export const Home: React.FC = () => {
               .filter((product) =>
                 product.images?.some((i) => i.isMain && i.url)
               )
-              .map((product) => (
-                <ProductCard
-                  key={product.id!}
-                  id={product.id!}
-                  title={product.name}
-                  price={`$${product.price}`}
-                  imageUrl={product.images.find((i) => i.isMain)?.url || ''}
-                />
-              ))}
+              .map((product) => {
+                return (
+                  <ProductCard
+                    key={product.id!}
+                    id={product.id!}
+                    title={product.name}
+                    price={`$${product.price}`}
+                    imageUrl={product.images.find((i) => i.isMain)?.url || ""}
+                  />
+                );
+              })}
           </div>
         </main>
       </section>

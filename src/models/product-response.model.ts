@@ -7,6 +7,11 @@ export interface ProductImageResponse {
   updatedAt?: Date;
 }
 
+export interface ProductColors {
+  color: string;
+  hexadecimalRgb: string;
+}
+
 export interface ProductResponse {
   id: number | null;
   name: string;
@@ -18,6 +23,7 @@ export interface ProductResponse {
   createdAt?: Date;
   updatedAt?: Date;
   images: ProductImageResponse[];
+  productColor: ProductColors;
 }
 
 export interface Product {
