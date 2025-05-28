@@ -1,54 +1,90 @@
-# React + TypeScript + Vite
+# Frontend - React + TypeScript 🛍️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este proyecto es una **Single Page Application (SPA)** construida con **React + TypeScript** utilizando **Vite** como *bundler*. El diseño es **mobile-first**, responsivo y optimizado con **Tailwind CSS**. La aplicación consume servicios de una API en NestJS para manejar productos, pedidos y pagos usando **Wompi**.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Tecnologías utilizadas
 
-## Expanding the ESLint configuration
+- **React 18** con **Vite**
+- **TypeScript**
+- **React Router v6** para SPA y navegación por rutas
+- **Tailwind CSS** para estilos modernos y responsivos
+- **React Query** para manejo de peticiones y caché de datos
+- **Redux Toolkit** para la gestión del estado del carrito
+- **Wompi API** para procesamiento de pagos
+- **Axios** para comunicación con el backend
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 📦 Estructura del proyecto
+
+```
+src/
+├── api/         # Configuración de Axios para comunicación con el backend
+├── components/  # Componentes reutilizables como Loader, Header, ProductCard, etc.
+├── context/     # Estado global de la aplicación usando context API y reducers
+├── hooks/       # Hooks personalizados reutilizables (por ejemplo, useProducts, useCart)
+├── pages/       # Vistas principales de la SPA: Home, ProductDetails, Checkout
+└── models/      # Interfaces y tipos TypeScript para tipado fuerte
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🛒 Funcionalidades principales
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+- SPA completamente responsiva.
+- Listado dinámico de productos.
+- Detalle del producto con botón para agregar al carrito.
+- Carrito deslizable desde el Header.
+- Checkout funcional con integración a pagos con tarjeta (tokenización vía Wompi).
+- Loader animado y persistencia del estado del carrito en `localStorage`.
+
+---
+
+## 🧪 Variables de entorno
+
+Crea un archivo `.env` en la raíz del frontend con:
+
 ```
+VITE_API_BASE_URL= http://localhost:5001/api/
+VITE_WOMPI_PUBLIC_KEY=pub_stagtest_
+VITE_WOMPI_API_URL=https://api-sandbox.co.uat.wompi.dev/v1
+```
+
+> Las claves y endpoints deben cambiar según el entorno (`dev`, `prod`, etc.).
+
+---
+
+## 🧑‍💻 Scripts disponibles
+
+```bash
+npm install        # Instala dependencias
+npm run dev        # Inicia el servidor local de desarrollo (Vite)
+npm run build      # Genera la versión optimizada para producción
+npm run preview    # Previsualiza la app ya construida
+```
+
+---
+
+## ✨ Extras
+
+- Transición entre rutas sin recargar la página.
+- Soporte para navegación con `useNavigate` y paso de estado.
+- Estilización con utilidades de Tailwind (sin CSS global manual).
+- Componentes reutilizables y desacoplados.
+- Buenas prácticas de estructura de carpetas y tipado estricto.
+
+---
+
+## ✅ Próximas mejoras
+
+- Validaciones de formularios con Zod o React Hook Form.
+- Soporte para historial de compras y login.
+- Agregar paginación y filtros.
+
+---
+
+## 📄 Licencia
+
+MIT

@@ -4,7 +4,7 @@ import App from "./App.tsx";
 import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
-import { CartProvider } from "./components/CartContext.tsx";
+import { CartProvider } from "./context/cart-context.tsx";
 
 const queryClient = new QueryClient();
 

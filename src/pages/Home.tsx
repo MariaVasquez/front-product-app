@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { fetchProducts } from "../api/fetch/product-service.fetch";
 import { ProductCard } from "../components/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 
 export const Home: React.FC = () => {
-  
+  const [isLoad, setIsLoading] = useState(false);
   const {
     data: products = [],
     isLoading,
@@ -14,12 +15,24 @@ export const Home: React.FC = () => {
     refetchInterval: 10000,
   });
 
-  if (isLoading)
-    return <div className="text-center animate-pulse">🌀 Cargando...</div>;
-  if (error) return <p>Ocurrió un error cargando los productos.</p>;
+  if (isLoading) {
+    setIsLoading(true);
+  }
+
+  if (error) {
+    setIsLoading(true);
+  }
 
   return (
     <>
+      {isLoad && (
+        <div className="fixed inset-0 z-50 bg-[rgba(0,0,0,0.5)] flex flex-col items-center justify-center space-y-4 transition-opacity">
+          <div className="w-10 h-10 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
+          <p className="text-white text-lg font-light">
+            Estamos procesando la información...
+          </p>
+        </div>
+      )}
       <section className="relative h-[60vh] bg-[url('/assets/fondo.png')] bg-cover bg-center bg-fixed flex items-center justify-center">
         <div className="text-center text-white">
           <p className="tracking-widest text-sm md:text-lg uppercase">
@@ -41,8 +54,9 @@ export const Home: React.FC = () => {
                     key={product.id!}
                     id={product.id!}
                     title={product.name}
-                    price={`$${product.price}`}
+                    price={`$${product.price.toLocaleString("es-CO")}`}
                     imageUrl={product.images.find((i) => i.isMain)?.url || ""}
+                    stock={product.stock}
                   />
                 );
               })}

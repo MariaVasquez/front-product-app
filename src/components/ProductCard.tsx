@@ -5,6 +5,7 @@ interface ProductCardProps {
   title: string;
   price: string;
   imageUrl: string;
+  stock:number;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -12,7 +13,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   title,
   price,
   imageUrl,
+  stock,
 }) => {
+
+  if (stock <= 0) return null;
   
   return (
     <div className="text-left">
@@ -33,6 +37,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </Link>
 
       <p className="text-lg font-light text-gray-900 mt-1">{price}</p>
+      <p className="text-lg font-light text-gray-900 mt-1">Stock disponibles: {stock}</p>
     </div>
   );
 };

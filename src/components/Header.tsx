@@ -3,19 +3,19 @@ import { ModalUser } from "./ModalUser";
 import { useEffect, useState } from "react";
 import { useLocalStorage } from "../hooks/use-local-storage";
 import type { UserResponse } from "../models/user.model";
-import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from "./CartContext";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useCart } from "../context/cart-context";
+import { SlidingCartPanel } from "./SlidingCartPanel";
 
 export const Header: React.FC = () => {
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [user] = useLocalStorage<UserResponse | null>("user", null);
   const [userName, setUserName] = useState<string>("");
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { state } = useCart();
-
-  console.log(state);
-  
 
   const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -38,7 +38,7 @@ export const Header: React.FC = () => {
           <img
             src="/assets/cute.png"
             alt="Logo Cute"
-            className="h-full max-h-10 object-contain"
+            className="h-auto max-h-30 object-contain"
           />
         </Link>
 
@@ -74,15 +74,25 @@ export const Header: React.FC = () => {
                 </button>
               </div>
             )}
-            <button className="relative hover:text-rose-600 transition">
-              <ShoppingCart className="w-6 h-6" />
-              <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs rounded-full px-1">
-                {totalItems}
-              </span>
-            </button>
+
+            {location.pathname !== "/checkouts" && (
+              <button
+                className="relative hover:text-[#d99a76] transition"
+                onClick={() => setIsCartOpen(true)}
+              >
+                <ShoppingCart className="w-8 h-8" />
+                <span className="absolute -top-2 -right-2 bg-[#d99a76] text-white text-xs rounded-full px-1">
+                  {totalItems}
+                </span>
+              </button>
+            )}
           </div>
         </nav>
       </header>
+      <SlidingCartPanel
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+      />
       <ModalUser isOpen={openModal} onClose={handleCloseModal} />
     </>
   );

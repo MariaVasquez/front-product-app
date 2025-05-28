@@ -13,7 +13,8 @@ type CartState = {
 type Action =
   | { type: "ADD_ITEM"; payload: CartItem }
   | { type: "REMOVE_ITEM"; payload: number }
-  | { type: "CLEAR_CART" };
+  | { type: "CLEAR_CART" }
+  | { type: "UPDATE_ITEM_QUANTITY"; payload: CartItem  };
 
 const CartContext = createContext<{
   state: CartState;
@@ -48,6 +49,16 @@ const cartReducer = (state: CartState, action: Action): CartState => {
 
     case "CLEAR_CART":
       return { items: [] };
+
+    case "UPDATE_ITEM_QUANTITY":
+      return {
+        ...state,
+        items: state.items.map((item) =>
+          item.productId === action.payload.productId
+            ? { ...item, quantity: action.payload.quantity }
+            : item
+        ),
+      };
 
     default:
       return state;

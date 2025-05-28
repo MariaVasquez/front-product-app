@@ -3,7 +3,7 @@ import { ProductService } from "../api/products-service";
 import { useEffect, useRef, useState } from "react";
 import type { ProductResponse } from "../models/product-response.model";
 import { useLocalStorage } from "../hooks/use-local-storage";
-import { useCart } from "../components/CartContext";
+import { useCart } from "../context/cart-context";
 export const ProductDetail: React.FC = () => {
   const productService = useRef(new ProductService()).current;
   const location = useLocation();
@@ -104,30 +104,34 @@ export const ProductDetail: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-start pt-24 px-6">
+    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 pt-20 px-8">
       <div className="w-full flex justify-center">
         {url && (
           <img
             src={url}
             alt="Producto"
-            className="max-w-md w-full object-cover rounded-md"
+            className="max-w-xl w-full object-cover rounded-lg shadow-md"
           />
         )}
       </div>
 
-      <div className="space-y-4 text-left">
-        <p className="text-sm tracking-widest text-gray-500 uppercase">CUTE</p>
+      <div className="space-y-6 text-left">
+        <p className="text-base tracking-widest text-gray-500 uppercase">
+          CUTE
+        </p>
 
-        <h1 className="text-3xl font-semibold leading-tight">{product.name}</h1>
+        <h1 className="text-4xl font-bold leading-snug">{product.name}</h1>
 
-        <p className="text-lg font-medium">$ {product.price}</p>
+        <p className="text-2xl font-semibold text-black">
+          ${product.price.toLocaleString("es-CO")}
+        </p>
 
-        <p className="text-sm text-gray-500">{product.description}</p>
+        <p className="text-base text-gray-600">{product.description}</p>
 
         <div>
-          <p className="text-sm mb-1">Color</p>
+          <p className="text-base font-medium mb-1">Color</p>
           <button
-            className="border border-black px-4 py-1 text-black text-sm rounded-full"
+            className="border border-black px-5 py-2 text-black text-base rounded-full"
             style={{ backgroundColor: product.productColor.hexadecimalRgb }}
           >
             {product.productColor.color}
@@ -135,19 +139,19 @@ export const ProductDetail: React.FC = () => {
         </div>
 
         <div>
-          <p className="text-sm mb-1">Cantidad</p>
-          <div className="flex items-center border border-gray-300 w-32 rounded">
+          <p className="text-base font-medium mb-1">Cantidad</p>
+          <div className="flex items-center border border-gray-400 w-40 rounded overflow-hidden">
             <button
-              className="flex-1 py-1"
+              className="flex-1 py-2 text-lg font-bold"
               onClick={() =>
                 setQuantity((prevQuantity) => Math.max(1, prevQuantity - 1))
               }
             >
               −
             </button>
-            <span className="flex-1 text-center">{quantity}</span>
+            <span className="flex-1 text-center text-lg">{quantity}</span>
             <button
-              className="flex-1 py-1"
+              className="flex-1 py-2 text-lg font-bold"
               onClick={() => setQuantity((prevQuantity) => prevQuantity + 1)}
             >
               +
@@ -158,18 +162,18 @@ export const ProductDetail: React.FC = () => {
           </p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3 pt-4">
           <button
-            className="w-full border border-black py-2 text-sm hover:bg-gray-100 transition"
+            className="w-full border border-black py-3 text-base font-medium hover:bg-gray-100 transition"
             onClick={handleAddToCartWrapper}
           >
             Agregar al carrito
           </button>
           <button
-            className="w-full top-2 bg-[#d99a76] text-white font-semibold py-2 rounded-md hover:bg-[#E9B99A] transition"
+            className="w-full bg-[#d99a76] text-white font-semibold py-3 rounded-md hover:bg-[#E9B99A] transition"
             onClick={() => handleGoToCheckoutToPay()}
           >
-            Comprar agora
+            Comprar ahora
           </button>
         </div>
       </div>
