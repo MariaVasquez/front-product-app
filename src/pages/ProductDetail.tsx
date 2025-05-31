@@ -19,7 +19,7 @@ export const ProductDetail: React.FC = () => {
     createdAt: undefined,
     updatedAt: undefined,
     images: [],
-    productColor: { color: "", hexadecimalRgb: "" },
+    productColor: [{ color: "", hexadecimalRgb: "" }],
   });
   const [quantity, setQuantity] = useState(1);
   const url: string = product.images.find((img) => img.isMain)?.url || "";
@@ -128,15 +128,17 @@ export const ProductDetail: React.FC = () => {
 
         <p className="text-base text-gray-600">{product.description}</p>
 
-        <div>
-          <p className="text-base font-medium mb-1">Color</p>
+        {product.productColor.map((c, index) => (
           <button
-            className="border border-black px-5 py-2 text-black text-base rounded-full"
-            style={{ backgroundColor: product.productColor.hexadecimalRgb }}
+            key={index}
+            className="border border-black px-5 py-2 text-black text-base rounded-full transition duration-200 hover:brightness-110 active:brightness-125"
+            style={{
+              backgroundColor: c?.hexadecimalRgb,
+            }}
           >
-            {product.productColor.color}
+            {c?.color}
           </button>
-        </div>
+        ))}
 
         <div>
           <p className="text-base font-medium mb-1">Cantidad</p>

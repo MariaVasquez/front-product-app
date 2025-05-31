@@ -13,9 +13,11 @@ export const Header: React.FC = () => {
   const [user] = useLocalStorage<UserResponse | null>("user", null);
   const [userName, setUserName] = useState<string>("");
   const [showDropdown, setShowDropdown] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useCart();
+  const hideCart = location.pathname.includes("/checkouts");
 
   const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -89,10 +91,12 @@ export const Header: React.FC = () => {
           </div>
         </nav>
       </header>
-      <SlidingCartPanel
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-      />
+      {!hideCart && (
+        <SlidingCartPanel
+          isOpen={isCartOpen}
+          onClose={() => setIsCartOpen(false)}
+        />
+      )}
       <ModalUser isOpen={openModal} onClose={handleCloseModal} />
     </>
   );

@@ -23,7 +23,7 @@ export interface ProductResponse {
   createdAt?: Date;
   updatedAt?: Date;
   images: ProductImageResponse[];
-  productColor: ProductColors;
+  productColor: ProductColors[];
 }
 
 export interface Product {

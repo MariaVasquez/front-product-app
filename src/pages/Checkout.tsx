@@ -74,23 +74,6 @@ export const Checkout: React.FC = () => {
     else setCardType(null);
   };
 
-  const token = async (
-    cardRequest: CardTokenRequest
-  ): Promise<string | undefined> => {
-    try {
-      const tokenResponse = await wompiService.tokenizeCard(cardRequest);
-      if (tokenResponse) {
-        return tokenResponse;
-      }
-      setIsError(true);
-      return undefined;
-    } catch (err) {
-      console.error("Error al generar el token:", err);
-      setIsError(true);
-      return undefined;
-    }
-  };
-
   const totalAmount = async () => {
     let amount = 0;
     const dataDetail: DetailProduct[] = [];
@@ -106,6 +89,8 @@ export const Checkout: React.FC = () => {
           productName: data.data?.name ?? "Producto sin nombre",
           quantity: item.quantity,
         };
+        console.log(detail);
+
         dataDetail.push(detail);
         setDetailedItems(dataDetail);
 
@@ -122,12 +107,22 @@ export const Checkout: React.FC = () => {
     return amount;
   };
 
-  useEffect(() => {
-    if (!user?.id) {
-      return;
+  const token = async (
+    cardRequest: CardTokenRequest
+  ): Promise<string | undefined> => {
+    try {
+      const tokenResponse = await wompiService.tokenizeCard(cardRequest);
+      if (tokenResponse) {
+        return tokenResponse;
+      }
+      setIsError(true);
+      return undefined;
+    } catch (err) {
+      console.error("Error al generar el token:", err);
+      setIsError(true);
+      return undefined;
     }
-    totalAmount().then();
-  }, []);
+  };
 
   const handlePay = async (data: CardForm) => {
     setIsLoading(true);
@@ -178,7 +173,7 @@ export const Checkout: React.FC = () => {
             if (data.message === "Ok") {
               setIsLoading(false);
               dispatch({
-                type: "CLEAR_CART"
+                type: "CLEAR_CART",
               });
               setIsSuccess(true);
             } else {
@@ -194,6 +189,16 @@ export const Checkout: React.FC = () => {
       console.error("Error en el pago", err);
     }
   };
+
+  useEffect(() => {
+    if (!user) {
+      setIsModalOpen(true);
+      return;
+    }
+    if (orderInfo) {
+      totalAmount();
+    }
+  }, [user, navigate]);
 
   return (
     <>
@@ -308,6 +313,7 @@ export const Checkout: React.FC = () => {
                     type={showCvc ? "text" : "password"}
                     maxLength={4}
                     inputMode="numeric"
+                    autoComplete="cc-csc"
                     {...register("cvc", {
                       required: "CVC requerido",
                       pattern: {
@@ -461,7 +467,7 @@ export const Checkout: React.FC = () => {
       <LoginModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       {isSuccess && (
         <SuccessModal
-          message="¡Tu pago fue exitoso! 🎉"
+          message="🎉 ¡Estamos procesando tu pago! Tu pedido fue recibido correctamente "
           onClose={() => setIsSuccess(false)}
         />
       )}

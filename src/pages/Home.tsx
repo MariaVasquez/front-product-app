@@ -1,31 +1,21 @@
-import { useState } from "react";
 import { fetchProducts } from "../api/fetch/product-service.fetch";
 import { ProductCard } from "../components/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 
 export const Home: React.FC = () => {
-  const [isLoad, setIsLoading] = useState(false);
   const {
     data: products = [],
     isLoading,
-    error,
+    isError,
   } = useQuery({
     queryKey: ["products"],
     queryFn: fetchProducts,
     refetchInterval: 10000,
   });
 
-  if (isLoading) {
-    setIsLoading(true);
-  }
-
-  if (error) {
-    setIsLoading(true);
-  }
-
   return (
     <>
-      {isLoad && (
+      {isLoading || isError && (
         <div className="fixed inset-0 z-50 bg-[rgba(0,0,0,0.5)] flex flex-col items-center justify-center space-y-4 transition-opacity">
           <div className="w-10 h-10 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
           <p className="text-white text-lg font-light">

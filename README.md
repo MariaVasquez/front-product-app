@@ -77,6 +77,12 @@ npm run preview    # Previsualiza la app ya construida
 
 ---
 
+## Ajustes
+
+-Se sube a la rama develop los ajustes por error en inicio del home, error en validación de el carrito y el login
+
+---
+
 ## ✅ Próximas mejoras
 
 - Validaciones de formularios con Zod o React Hook Form.
