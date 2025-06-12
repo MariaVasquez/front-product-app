@@ -1,5 +1,6 @@
 export interface WompiTransaction {
   amountInCents: number;
+  amountInCentsIva:number;
   currency: string;
   customerEmail: string;
   paymentToken: string;

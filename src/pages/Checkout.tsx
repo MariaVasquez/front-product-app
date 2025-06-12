@@ -1,29 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { WompiService, type CardTokenRequest } from "../api/wompi-service";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { OrderRequest } from "../models/order-request.model";
-import type { UserResponse } from "../models/user.model";
-import { useLocalStorage } from "../hooks/use-local-storage";
-import { OrderService } from "../api/orders-service";
-import type { InitiatePaymentRequest } from "../models/payment-initial-request.model";
 import { ProductService } from "../api/products-service";
-import { PaymentService } from "../api/payments-service";
-import { useForm } from "react-hook-form";
-import { ArrowLeft } from "lucide-react";
 import { LoginModal } from "../components/LoginModal";
-import { Eye, EyeOff } from "lucide-react";
 import { SuccessModal } from "../components/SuccessModal";
 import { ErrorModal } from "../components/ErrorModal";
-import { useCart } from "../context/cart-context";
-
-type CardForm = {
-  number: string;
-  expMonth: string;
-  expYear: string;
-  cvc: string;
-  cardHolder: string;
-  installments: string;
-};
+import { PaymentForm } from "../components/PaymentForm";
+import { useAuth } from "../context/auth-context";
 
 type DetailProduct = {
   productId: number;
@@ -36,45 +19,25 @@ export const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const orderInfo = location.state as OrderRequest;
-  const [user] = useLocalStorage<UserResponse | null>("user", null);
-  const wompiService = new WompiService();
+  const { user } = useAuth();
   const [total, setTotalAmount] = useState<number>();
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<CardForm>();
-  const orderService = useRef(new OrderService()).current;
+  const [subtotal, setSubtotalAmount] = useState<number>();
+  const [iva, setIvaAmount] = useState<number>();
   const productService = useRef(new ProductService()).current;
-  const paymentService = useRef(new PaymentService()).current;
   const [detailedItems, setDetailedItems] = useState<DetailProduct[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [cardType, setCardType] = useState<"visa" | "mastercard" | null>(null);
-  const [showCvc, setShowCvc] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { dispatch } = useCart();
+  const [isTermsConditions, setTermsConditions] = useState(false);
+  const [termsError, setTermsError] = useState<string | null>(null);
 
   const formatPrice = (value: number): string => {
     return value.toLocaleString("es-CO");
   };
 
-  const handleContinueShopping = () => {
-    navigate("/");
-  };
-
-  const handleCardInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "");
-    setValue("number", value);
-    if (/^4/.test(value)) setCardType("visa");
-    else if (/^5[1-5]/.test(value) || /^2(2[2-9]|[3-6]|7[01]|720)/.test(value))
-      setCardType("mastercard");
-    else setCardType(null);
-  };
-
   const totalAmount = async () => {
+    setIsLoading(true);
     let amount = 0;
     const dataDetail: DetailProduct[] = [];
     for (const item of orderInfo.items) {
@@ -89,105 +52,29 @@ export const Checkout: React.FC = () => {
           productName: data.data?.name ?? "Producto sin nombre",
           quantity: item.quantity,
         };
-        console.log(detail);
-
         dataDetail.push(detail);
         setDetailedItems(dataDetail);
 
         if (typeof price === "number" && price > 0) {
           amount += price * item.quantity;
+          setIsLoading(false);
         } else {
           console.warn(`Precio inválido para el producto ${item.productId}`);
+          setIsError(true);
+          setIsLoading(false);
         }
       } catch (err) {
         console.error(`Error al obtener producto ${item.productId}`, err);
+        setIsError(true);
+        setIsLoading(false);
       }
     }
-    setTotalAmount(amount);
+    const iva = amount * 0.19;
+    const total = iva + amount;
+    setIvaAmount(iva);
+    setSubtotalAmount(amount);
+    setTotalAmount(total);
     return amount;
-  };
-
-  const token = async (
-    cardRequest: CardTokenRequest
-  ): Promise<string | undefined> => {
-    try {
-      const tokenResponse = await wompiService.tokenizeCard(cardRequest);
-      if (tokenResponse) {
-        return tokenResponse;
-      }
-      setIsError(true);
-      return undefined;
-    } catch (err) {
-      console.error("Error al generar el token:", err);
-      setIsError(true);
-      return undefined;
-    }
-  };
-
-  const handlePay = async (data: CardForm) => {
-    setIsLoading(true);
-    const cardRequest: CardTokenRequest = {
-      card_holder: data.cardHolder,
-      cvc: data.cvc,
-      exp_month: data.expMonth,
-      exp_year: data.expYear,
-      number: data.number,
-    };
-
-    if (!user || typeof user.id !== "number") {
-      setIsError(true);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const orderRequest: OrderRequest = {
-        userId: user.id,
-        items: orderInfo.items,
-      };
-
-      const order = await orderService.saveOrder(orderRequest);
-
-      const generatedToken = await token(cardRequest);
-
-      if (!generatedToken) {
-        return;
-      }
-
-      if (order.data?.id) {
-        const initialPaymentRequest: InitiatePaymentRequest = {
-          orderId: order.data?.id,
-          wompi: {
-            amountInCents: await totalAmount(),
-            currency: "COP",
-            installments: 1,
-            redirectUrl: "https://docs.wompi.co/docs/colombia/js/",
-            customerEmail: user.email,
-            paymentToken: generatedToken,
-          },
-        };
-
-        paymentService
-          .initiatePayment(initialPaymentRequest)
-          .then((data) => {
-            if (data.message === "Ok") {
-              setIsLoading(false);
-              dispatch({
-                type: "CLEAR_CART",
-              });
-              setIsSuccess(true);
-            } else {
-              setIsError(true);
-            }
-          })
-          .catch((err) => {
-            console.error(err);
-            setIsError(true);
-          });
-      }
-    } catch (err) {
-      console.error("Error en el pago", err);
-    }
   };
 
   useEffect(() => {
@@ -195,6 +82,7 @@ export const Checkout: React.FC = () => {
       setIsModalOpen(true);
       return;
     }
+    setIsModalOpen(false);
     if (orderInfo) {
       totalAmount();
     }
@@ -238,165 +126,15 @@ export const Checkout: React.FC = () => {
                 <p className="text-sm text-gray-500">Listo el mismo día</p>
               </div>
             </section>
-
-            <section className="bg-pink-50 p-6 rounded-lg shadow">
-              <h2 className="font-semibold text-xl mb-4">Pago</h2>
-              <form
-                onSubmit={handleSubmit(handlePay)}
-                className="space-y-5 text-lg"
-              >
-                {/* Número de tarjeta */}
-                <div className="relative w-full">
-                  <input
-                    placeholder="Número"
-                    maxLength={19}
-                    inputMode="numeric"
-                    onInput={handleCardInput}
-                    {...register("number", {
-                      required: "El número es requerido",
-                      validate: {
-                        visaOrMastercard: (value) =>
-                          /^4\d{12,18}$/.test(value) ||
-                          /^5[1-5]\d{14}$/.test(value) ||
-                          /^2(2[2-9][1-9]|2[3-9]\d|[3-6]\d{2}|7[01]\d|720)\d{12}$/.test(
-                            value
-                          )
-                            ? true
-                            : "Debe ser una tarjeta Visa o MasterCard válida",
-                      },
-                    })}
-                    className="border p-4 w-full text-lg rounded-lg placeholder:text-gray-500 pr-14"
-                  />
-                  {cardType && (
-                    <img
-                      src={
-                        cardType === "visa"
-                          ? "/assets/visa.png"
-                          : "/assets/mastercard.png"
-                      }
-                      alt={cardType}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 w-8 h-8"
-                    />
-                  )}
-                </div>
-
-                {/* Fecha de expiración */}
-                <div className="flex gap-4">
-                  <input
-                    placeholder="MM"
-                    maxLength={2}
-                    inputMode="numeric"
-                    {...register("expMonth", {
-                      required: "Mes requerido",
-                      validate: (value) =>
-                        (Number(value) >= 1 && Number(value) <= 12) ||
-                        "Mes inválido",
-                    })}
-                    className="border p-4 w-full text-lg rounded-lg"
-                  />
-                  <input
-                    placeholder="YY"
-                    maxLength={2}
-                    inputMode="numeric"
-                    {...register("expYear", {
-                      required: "Año requerido",
-                      validate: (value) =>
-                        Number(value) >= 24 || "Año inválido (mínimo 24)",
-                    })}
-                    className="border p-4 w-full text-lg rounded-lg"
-                  />
-                </div>
-
-                <div className="relative">
-                  <input
-                    placeholder="CVC"
-                    type={showCvc ? "text" : "password"}
-                    maxLength={4}
-                    inputMode="numeric"
-                    autoComplete="cc-csc"
-                    {...register("cvc", {
-                      required: "CVC requerido",
-                      pattern: {
-                        value: /^\d{3,4}$/,
-                        message: "Debe ser de 3 o 4 dígitos",
-                      },
-                    })}
-                    className="border p-4 w-full text-lg rounded-lg pr-12"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCvc((prev) => !prev)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
-                    tabIndex={-1}
-                  >
-                    {showCvc ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                  {errors.cvc && (
-                    <p className="text-red-500 text-base mt-1">
-                      {errors.cvc.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Titular */}
-                <input
-                  placeholder="Nombre titular"
-                  {...register("cardHolder", {
-                    required: "Nombre requerido",
-                    minLength: {
-                      value: 5,
-                      message: "Debe tener al menos 5 caracteres",
-                    },
-                  })}
-                  className="border p-4 w-full text-lg rounded-lg"
-                />
-                {errors.cardHolder && (
-                  <p className="text-red-500 text-base">
-                    {errors.cardHolder.message}
-                  </p>
-                )}
-
-                {/* Cuotas */}
-                <select
-                  {...register("installments", {
-                    required: "Selecciona el número de cuotas",
-                  })}
-                  className="border p-4 w-full text-lg rounded-lg"
-                >
-                  <option value="">Número de cuotas</option>
-                  <option value="1">1 cuota</option>
-                  <option value="3">3 cuotas</option>
-                  <option value="6">6 cuotas</option>
-                </select>
-                {errors.installments && (
-                  <p className="text-red-500 text-base">
-                    {errors.installments.message}
-                  </p>
-                )}
-
-                {/* Botón comprar */}
-                <button
-                  type="submit"
-                  className="mt-6 w-full bg-[#d99a76] hover:bg-[#E9B99A] text-white text-lg py-3 rounded-lg font-semibold transition-all"
-                >
-                  COMPRAR AHORA
-                </button>
-
-                {/* Botón seguir comprando */}
-                <button
-                  onClick={handleContinueShopping}
-                  type="button"
-                  className="mt-3 w-full bg-white text-[#d99a76] border border-[#d99a76] py-2 rounded font-semibold hover:bg-pink-50 transition flex items-center justify-center gap-2"
-                >
-                  <ArrowLeft className="w-5 h-5 text-[#d99a76]" />
-                  <span>Seguir comprando</span>
-                </button>
-              </form>
-            </section>
+            {user && (
+              <PaymentForm
+                user={user}
+                ivaAmount={iva ?? 0}
+                totalAmount={total ?? 0}
+                termsConditions={isTermsConditions}
+                setTermsError={setTermsError}
+              />
+            )}
           </div>
         </div>
 
@@ -417,6 +155,7 @@ export const Checkout: React.FC = () => {
                 <div>
                   <p className="text-lg font-semibold">{item.productName}</p>
                   <p className="text-base text-gray-600">Mismo día</p>
+
                   <p className="text-lg font-bold">
                     $ {formatPrice(item.price * item.quantity)}
                   </p>
@@ -425,9 +164,15 @@ export const Checkout: React.FC = () => {
             ))}
 
             <p className="text-base font-medium">
+              IVA(19%):{" "}
+              <span className="float-right font-semibold">
+                 $ {formatPrice(iva || 0)}
+              </span>
+            </p>
+            <p className="text-base font-medium">
               Subtotal:{" "}
               <span className="float-right font-semibold">
-                $ {formatPrice(total || 0)}
+                $ {formatPrice(subtotal || 0)}
               </span>
             </p>
             <p className="text-base font-medium">
@@ -439,7 +184,15 @@ export const Checkout: React.FC = () => {
 
             <div className="mt-6 text-sm">
               <label className="flex items-start gap-3">
-                <input type="checkbox" className="mt-1" />
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={isTermsConditions}
+                  onChange={(e) => {
+                    setTermsConditions(e.target.checked);
+                    if (e.target.checked) setTermsError(null);
+                  }}
+                />
                 <span>
                   He leído y acepto los{" "}
                   <a href="#" className="text-pink-600 underline">
@@ -452,6 +205,9 @@ export const Checkout: React.FC = () => {
                   de tratamiento de datos
                 </span>
               </label>
+              {termsError && (
+                <p className="text-red-500 text-sm mt-1">{termsError}</p>
+              )}
             </div>
           </aside>
         </div>

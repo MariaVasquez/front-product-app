@@ -10,7 +10,7 @@ type CartState = {
   items: CartItem[];
 };
 
-type Action =
+export type Action =
   | { type: "ADD_ITEM"; payload: CartItem }
   | { type: "REMOVE_ITEM"; payload: number }
   | { type: "CLEAR_CART" }

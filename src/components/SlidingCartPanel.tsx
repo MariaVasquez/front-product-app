@@ -49,7 +49,7 @@ export const SlidingCartPanel: React.FC<CartDrawerProps> = ({
 
   const infoProducts = useProductsByIds(productIds);
 
-  const { totalAmount, hasError } = useMemo(() => {
+  const { iva, subtotal, totalAmount, hasError } = useMemo(() => {
     let amount = 0;
     let error = false;
 
@@ -76,8 +76,13 @@ export const SlidingCartPanel: React.FC<CartDrawerProps> = ({
       amount += price * quantity;
     });
 
+    const valueIva = amount * 0.19;
+    const total = amount + valueIva;
+
     return {
-      totalAmount: amount.toLocaleString("es-CO"),
+      iva: valueIva.toLocaleString("es-CO"),
+      subtotal: amount.toLocaleString("es-CO"),
+      totalAmount: total.toLocaleString("es-CO"),
       hasError: error,
     };
   }, [infoProducts, state.items]);
@@ -182,11 +187,15 @@ export const SlidingCartPanel: React.FC<CartDrawerProps> = ({
           )}
         </div>
 
-        <div className="p-4 border-t border-gray-300 bg-white">
+        <div className="p-2 border-t border-gray-300 bg-white">
           <div className="text-sm font-medium">
             <div className="flex justify-between">
+              <span>IVA(19%)</span>
+              <span>$ {iva}</span>
+            </div>
+            <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>$ {totalAmount}</span>
+              <span>$ {subtotal}</span>
             </div>
             <div className="flex justify-between mt-1">
               <span>Total</span>

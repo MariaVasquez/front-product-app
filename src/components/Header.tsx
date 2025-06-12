@@ -1,16 +1,15 @@
 import { ShoppingCart } from "lucide-react";
 import { ModalUser } from "./ModalUser";
 import { useEffect, useState } from "react";
-import { useLocalStorage } from "../hooks/use-local-storage";
-import type { UserResponse } from "../models/user.model";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../context/cart-context";
 import { SlidingCartPanel } from "./SlidingCartPanel";
+import { useAuth } from "../context/auth-context";
 
 export const Header: React.FC = () => {
+  const { user } = useAuth();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [user] = useLocalStorage<UserResponse | null>("user", null);
   const [userName, setUserName] = useState<string>("");
   const [showDropdown, setShowDropdown] = useState(false);
 
